@@ -6,7 +6,7 @@ User provided a reference GitHub repo (Mohamed-Y-Mohamed/consultant-repository �
 ## Tech Stack
 - Next.js 16.2.3 (App Router) + React 19 + TypeScript — runs in production mode (`next start`) for reliable hydration through the preview ingress
 - Tailwind v4 (`@tailwindcss/postcss`) with custom CSS-variable theme tokens
-- Resend (npm `resend`) for contact form email delivery via the Next.js route handler `/send-enquiry`
+- Resend was removed. Contact form now sends mail **entirely client-side via EmailJS** (`@emailjs/browser`). No backend, no route handler — the form runs `emailjs.send()` directly in the browser.
 - **No Python / FastAPI backend** — MongoDB also unused
 
 ## Project Layout (flat)
@@ -57,7 +57,7 @@ The platform's K8s ingress hardcodes `/api/*` → port 8001 (the former FastAPI 
 - [x] About page with 5 dedicated narrative sections + ghost numerals
 - [x] Services page with `?s=` query-param driven selection/highlight + auto-scroll
 - [x] Contact page with premium hero, form, direct-lines panel, offices, commitment/discretion
-- [x] Contact form wired to Next.js route `/send-enquiry` → Resend → `m.y.m1995@outlook.com` (reply-to submitter)
+- [x] Contact form wired to **EmailJS (client-side)** — `emailjs.send(serviceId, templateId, params, { publicKey })`. Recipient `m.y.m1995@outlook.com` is hard-coded in the EmailJS template (not in code).
 - [x] Theme toggle (dark default) persisted in localStorage with pre-hydration inline script (no FOUC)
 - [x] Responsive (mobile accordion nav, fluid typography, stacked grids, overflow-x hidden)
 - [x] Services preview grid is symmetrical at tablet/desktop (6 tiles — 5 services + decorative "Explore All")
@@ -73,6 +73,11 @@ The platform's K8s ingress hardcodes `/api/*` → port 8001 (the former FastAPI 
 - [ ] P2: Auto-reply email to submitters
 
 ## Environment Variables — `/app/.env`
-- `RESEND_API_KEY` — required (https://resend.com → API Keys)
-- `CONTACT_TO_EMAIL=m.y.m1995@outlook.com`
-- `CONTACT_FROM_EMAIL=onboarding@resend.dev` (default; swap after verifying custom domain)
+- `NEXT_PUBLIC_EMAILJS_SERVICE_ID` — EmailJS service (e.g. `service_abc1234`)
+- `NEXT_PUBLIC_EMAILJS_TEMPLATE_ID` — EmailJS template (e.g. `template_xyz5678`)
+- `NEXT_PUBLIC_EMAILJS_PUBLIC_KEY` — EmailJS public key (Account → General → Public Key)
+
+Because `NEXT_PUBLIC_*` vars are inlined at build time, any change to `/app/.env` requires:
+```
+cd /app && yarn build && sudo supervisorctl restart frontend
+```

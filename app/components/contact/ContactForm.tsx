@@ -1,5 +1,6 @@
 "use client";
 import { useState, ReactNode } from "react";
+import { sendContactEmail } from "../../lib/emailjs";
 
 const ENQUIRY_TYPES = [
   "Management Contracts",
@@ -55,26 +56,14 @@ export default function ContactForm() {
     }
     setStatus("loading");
     try {
-      const res = await fetch("/send-enquiry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json().catch(() => ({} as Record<string, unknown>));
-      if (!res.ok) {
-        const d = data as { error?: string; detail?: string | unknown };
-        let msg: string | undefined = d.error;
-        if (!msg && typeof d.detail === "string") msg = d.detail;
-        if (!msg && Array.isArray(d.detail)) {
-          msg = (d.detail as Array<{ msg?: string }>).map((e) => e.msg).filter(Boolean).join("; ");
-        }
-        setError(msg || "Something went wrong. Please try again.");
-        setStatus("error");
-        return;
-      }
+      await sendContactEmail(form);
       setStatus("success");
-    } catch {
-      setError("Network error. Please try again.");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Unable to send message. Please try again shortly.";
+      setError(message);
       setStatus("error");
     }
   };
