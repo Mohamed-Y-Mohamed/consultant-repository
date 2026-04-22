@@ -31,12 +31,16 @@ export async function sendContactEmail(payload: ContactPayload) {
   }
 
   const templateParams = {
-    from_name: payload.fullName,
-    company: payload.company || "—",
+    // Primary variables (what our new Evora templates use):
+    name: payload.fullName,
+    title: payload.enquiryType,
     reply_to: payload.email,
     email: payload.email,
+    company: payload.company || "—",
     enquiry_type: payload.enquiryType,
     message: payload.message,
+    // Aliases kept for backwards compatibility with any existing templates:
+    from_name: payload.fullName,
   };
 
   return emailjs.send(SERVICE_ID!, TEMPLATE_ID!, templateParams, {
