@@ -360,6 +360,11 @@ body {
 /* ── Utilities ──────────────────────────────────────────────── */
 .h-18 { height: 4.5rem; }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 ::selection {
   background: var(--gold);
   color: var(--obsidian);

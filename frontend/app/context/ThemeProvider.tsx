@@ -14,30 +14,35 @@ interface ThemeContextValue {
   toggle: () => void;
 }
 
+function readInitialTheme(): Theme {
+  if (typeof document !== "undefined") {
+    const attr = document.documentElement.getAttribute("data-theme");
+    if (attr === "light" || attr === "dark") return attr;
+  }
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem("theme");
+    if (stored === "light" || stored === "dark") return stored;
+  }
+  return "dark";
+}
+
 const ThemeContext = createContext<ThemeContextValue>({
   theme: "dark",
   toggle: () => {},
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
-  const [mounted, setMounted] = useState(false);
+  // Initialize lazily so hydration reads the attribute set by the pre-hydration script.
+  const [theme, setTheme] = useState<Theme>(() => readInitialTheme());
 
   useEffect(() => {
-    const stored =
-      (typeof window !== "undefined"
-        ? (localStorage.getItem("theme") as Theme | null)
-        : null) || null;
-    const initial: Theme = stored ?? "dark";
-    setTheme(initial);
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-  }, [theme, mounted]);
+    try {
+      localStorage.setItem("theme", theme);
+    } catch {
+      /* ignore */
+    }
+  }, [theme]);
 
   const toggle = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 

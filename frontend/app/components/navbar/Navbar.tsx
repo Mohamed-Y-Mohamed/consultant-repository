@@ -14,8 +14,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -24,24 +23,28 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Close dropdown when clicking elsewhere (use click phase, not mousedown — avoids race with button click)
   useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (!dropdownRef.current) return;
-      if (!dropdownRef.current.contains(e.target as Node)) {
+    if (!servicesOpen) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (!wrapperRef.current) return;
+      if (!wrapperRef.current.contains(e.target as Node)) {
         setServicesOpen(false);
       }
     };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, [servicesOpen]);
 
-  const openDropdown = () => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    setServicesOpen(true);
-  };
-  const scheduleClose = () => {
-    closeTimer.current = setTimeout(() => setServicesOpen(false), 180);
-  };
+  // Close on Escape
+  useEffect(() => {
+    if (!servicesOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setServicesOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [servicesOpen]);
 
   return (
     <header
@@ -57,29 +60,26 @@ export default function Navbar() {
         transition: "background 0.5s ease, border-color 0.5s ease",
       }}
     >
-      <div
-        className="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between"
-        style={{ gap: "24px" }}
-      >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-3 sm:gap-4 md:gap-6">
         {/* Logo / wordmark */}
         <Link
           href="/"
           data-testid="nav-logo-link"
-          className="flex items-center gap-3 shrink-0"
+          className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0"
           style={{ textDecoration: "none" }}
         >
-          <svg viewBox="0 0 32 32" fill="none" style={{ width: "26px", height: "26px" }}>
+          <svg viewBox="0 0 32 32" fill="none" style={{ width: "24px", height: "24px", flexShrink: 0 }}>
             <rect x="1" y="1" width="13" height="13" stroke="var(--gold)" strokeWidth="1" />
             <rect x="18" y="18" width="13" height="13" stroke="var(--gold)" strokeWidth="1" />
             <rect x="9" y="9" width="14" height="14" stroke="var(--gold)" strokeWidth="0.75" strokeDasharray="2 2" opacity="0.45" />
           </svg>
           <span
-            className="font-display"
+            className="font-display wordmark whitespace-nowrap"
             style={{
               color: "var(--text-primary)",
               fontWeight: 300,
-              letterSpacing: "0.22em",
-              fontSize: "0.8rem",
+              letterSpacing: "0.18em",
+              fontSize: "0.72rem",
               textTransform: "uppercase",
             }}
           >
@@ -108,10 +108,10 @@ export default function Navbar() {
 
           {/* Services — dropdown */}
           <div
-            ref={dropdownRef}
+            ref={wrapperRef}
             className="relative"
-            onMouseEnter={openDropdown}
-            onMouseLeave={scheduleClose}
+            onMouseEnter={() => setServicesOpen(true)}
+            onMouseLeave={() => setServicesOpen(false)}
           >
             <button
               type="button"
@@ -125,7 +125,7 @@ export default function Navbar() {
                 background: "transparent",
                 border: "none",
                 cursor: "pointer",
-                padding: 0,
+                padding: "0.5rem 0",
                 color: servicesOpen ? "var(--gold)" : "var(--text-secondary)",
               }}
               aria-expanded={servicesOpen}
@@ -173,7 +173,7 @@ export default function Navbar() {
         </nav>
 
         {/* Right cluster */}
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0">
           <ThemeTrigger />
           <Link
             href="/contactus"
@@ -221,7 +221,7 @@ export default function Navbar() {
       {/* Mobile menu */}
       <div
         style={{
-          maxHeight: menuOpen ? "100vh" : "0",
+          maxHeight: menuOpen ? "calc(100vh - 4.5rem)" : "0",
           overflow: "hidden",
           transition: "max-height 0.5s ease",
         }}
@@ -235,6 +235,8 @@ export default function Navbar() {
             display: "flex",
             flexDirection: "column",
             gap: "1.25rem",
+            maxHeight: "calc(100vh - 4.5rem)",
+            overflowY: "auto",
           }}
         >
           {navLinks.map((l) => (
@@ -287,7 +289,7 @@ export default function Navbar() {
             </button>
             <div
               style={{
-                maxHeight: mobileServicesOpen ? "600px" : "0",
+                maxHeight: mobileServicesOpen ? "800px" : "0",
                 overflow: "hidden",
                 transition: "max-height 0.4s ease",
                 marginTop: mobileServicesOpen ? "12px" : "0",
@@ -349,6 +351,12 @@ export default function Navbar() {
           </Link>
         </div>
       </div>
+
+      <style>{`
+        .wordmark { font-size: 0.68rem; letter-spacing: 0.14em; }
+        @media (min-width: 380px) { .wordmark { font-size: 0.72rem; letter-spacing: 0.18em; } }
+        @media (min-width: 768px) { .wordmark { font-size: 0.8rem; letter-spacing: 0.22em; } }
+      `}</style>
     </header>
   );
 }

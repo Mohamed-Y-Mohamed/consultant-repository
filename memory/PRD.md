@@ -39,9 +39,10 @@ User provided a reference GitHub repo (Mohamed-Y-Mohamed/consultant-repository �
 - [x] About page with 5 dedicated narrative sections + ghost numerals
 - [x] Services page with `?s=` query-param driven selection/highlight + auto-scroll
 - [x] Contact page with premium hero, form, direct-lines panel, offices, commitment/discretion
-- [x] Contact form wired to `/api/contact` → Resend → `m.y.m1995@outlook.com` (reply-to submitter)
-- [x] Theme toggle (dark default) persisted in localStorage
-- [x] Responsive (mobile accordion nav, fluid typography, stacked grids)
+- [x] Contact form wired to FastAPI `/api/contact` → Resend → `m.y.m1995@outlook.com` (reply-to submitter). Moved from Next.js route handler to FastAPI because the platform's K8s ingress routes any `/api/*` path to the backend (port 8001), not the Next.js server (port 3000).
+- [x] Theme toggle (dark default) persisted in localStorage with pre-hydration inline script (no FOUC)
+- [x] Responsive (mobile accordion nav, fluid typography, stacked grids, overflow-x hidden)
+- [x] Production Next.js build (`yarn build` + `next start`) used by supervisor so hydration works reliably through the preview ingress (dev-mode HMR WebSocket is blocked by the ingress).
 
 ## Pending / Backlog
 - [ ] P0: Replace placeholder `RESEND_API_KEY` in `/app/frontend/.env` with real key

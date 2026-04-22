@@ -60,14 +60,20 @@ export default function ContactForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const data = await res.json().catch(() => ({}));
+      const data = await res.json().catch(() => ({} as Record<string, unknown>));
       if (!res.ok) {
-        setError(data?.error || "Something went wrong. Please try again.");
+        const d = data as { error?: string; detail?: string | unknown };
+        let msg: string | undefined = d.error;
+        if (!msg && typeof d.detail === "string") msg = d.detail;
+        if (!msg && Array.isArray(d.detail)) {
+          msg = (d.detail as Array<{ msg?: string }>).map((e) => e.msg).filter(Boolean).join("; ");
+        }
+        setError(msg || "Something went wrong. Please try again.");
         setStatus("error");
         return;
       }
       setStatus("success");
-    } catch (err) {
+    } catch {
       setError("Network error. Please try again.");
       setStatus("error");
     }
