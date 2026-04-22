@@ -1,0 +1,46 @@
+{
+  "summary": "First-pass frontend testing of Evora Capital Next.js site. All 4 pages load (200), all data-testid hooks present, services dropdown items + service cards rendered, /services?s=3 correctly applies .active to card-3 only. However FOUR critical/high issues found: (1) Theme toggle does NOT change theme or persist to localStorage despite click being registered, (2) /api/contact is unreachable from public URL — K8s ingress hijacks /api/* to FastAPI port 8001 yielding 404, so contact form submit is broken end-to-end (backend route logic itself is correct when hit via localhost:3000), (3) Services dropdown panel never receives the .open class on hover or click so menu items are styled invisible (count==1 in DOM but is_visible==False), (4) Mobile (390px) viewport has horizontal overflow — hamburger button bounding box renders at x=415 (>390), Playwright reports 'element outside viewport'.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "/api/contact (public URL)", "issue": "Returns 404 {detail: Not Found} via https://...preview.emergentagent.com/api/contact for GET and POST. Kubernetes ingress proxies /api/* to FastAPI on port 8001 instead of Next.js port 3000 where the route handler lives. Direct localhost:3000 works (GET 200 ok:true; POST valid body 503; POST missing fields 400; POST bad email 400) — so server logic is correct. Routing/ingress fix required (rename route to /contact or /next-api/contact, or add ingress rule, or proxy through FastAPI).", "priority": "CRITICAL"}
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "ThemeProvider/ThemeTrigger", "issue": "Click on theme-toggle button does not toggle theme. After 2 clicks: data-theme stayed 'dark', localStorage('theme') stayed null. ThemeProvider's mounted-effect appears to never run or toggle setter is no-op (default context value used). Suspect ThemeProvider not actually wrapping the rendered tree at runtime, or hydration mismatch caused by hard-coded data-theme='dark' on <html>.", "selector": "[data-testid=theme-toggle]", "priority": "CRITICAL"},
+      {"component": "Navbar Services dropdown (desktop)", "issue": "Hover and click on nav-services-trigger do NOT add the 'open' class on .services-dropdown. After hover+wait 300ms className read as 'services-dropdown ' (no open). Items exist in DOM (services-dropdown-item-1..5 each count=1) but is_visible()==False because CSS hides without .open. State setter setServicesOpen(true) appears to not stick — could be that document.mousedown handler immediately closes (target outside ref), or the dropdown is rendered but CSS rule .services-dropdown.open is missing.", "selector": "[data-testid=services-dropdown]", "priority": "HIGH"},
+      {"component": "Navbar (mobile @ 390px)", "issue": "Horizontal overflow — nav-mobile-hamburger has bounding box {x:415, y:25, width:28} which is OUTSIDE 390px viewport. Causes horizontal scrollbar on mobile and prevents tapping hamburger without scrolling.", "selector": "[data-testid=nav-mobile-hamburger]", "priority": "HIGH"}
+    ],
+    "integration_issues": [
+      {"flow": "Contact form submission", "issue": "Submitting valid form produces NO error toast and NO success state — fetch to /api/contact resolves to 404 from public URL (ingress routing). UI never enters the documented 503 error path because endpoint isn't reachable.", "affected_selectors": ["[data-testid=contact-form-submit]", "[data-testid=contact-form-error]", "[data-testid=contact-form-success]"]},
+      {"flow": "Services dropdown navigation", "issue": "Cannot click services-dropdown-item-N from hover/click on trigger because dropdown panel never visually opens (see UI bug above). Direct deep-link /services?s=3 works correctly though (.active applied to card-3 only)."}
+    ],
+    "design_issues": [
+      {"screen": "Hero (desktop)", "issues": ["Hero title 'Personal. Purposeful. Powerful.' renders with very low opacity in initial paint (CSS animation-driven). Page.evaluate(getAnimations().finish()) helps but Playwright text= matcher returned 0 hits initially. Confirmed visible in screenshot — not a real bug, but consider raising base opacity for SEO/accessibility."]},
+      {"screen": "Mobile navbar @ 390px", "issues": ["Layout overflows viewport horizontally (see HIGH bug above)."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "FIX (CRITICAL): /api/contact unreachable from public URL — K8s ingress sends /api/* to FastAPI:8001. Options: (a) rewrite ingress to send /api/contact to Next.js:3000, (b) move route to a non-/api path the ingress doesn't intercept, (c) proxy /api/contact through the FastAPI backend that already lives at :8001.",
+    "FIX (CRITICAL): Theme toggle does nothing. Inspect why ThemeProvider effects don't fire / toggle setter isn't replacing default context. Likely the dynamic [data-theme] attribute fights with hard-coded data-theme='dark' on <html> (suppressHydrationWarning is set but state may not commit). Add a console.log in toggle/useEffect to confirm. Consider initializing theme via inline <script> in <head> to avoid flash + ensure mounted effect runs.",
+    "FIX (HIGH): Services dropdown .open class not getting applied on desktop hover/click. Verify (1) state setter actually fires (add console.log in openDropdown/click handler), (2) document mousedown handler isn't closing it immediately (Playwright clicks fire mousedown first; ref check should pass but is worth re-verifying), (3) .services-dropdown.open CSS rule exists in globals.css.",
+    "FIX (HIGH): Mobile navbar overflows 390px viewport. Audit navbar gap/padding so contact CTA hidden on md:hidden plus theme toggle + hamburger fit within viewport. Add overflow-x:hidden to body as a safety net.",
+    "MINOR: Suppress webpack-hmr WS console errors in production build, or document as dev-only noise."
+  ],
+  "critical_code_review_comments": [
+    "ContactForm posts to relative '/api/contact' — fine for same-origin, but blocked here because the K8s ingress claims /api/*. This is an environment design conflict; either the project must not use the /api prefix in its Next.js route handlers, or the ingress must be updated for this service.",
+    "ThemeProvider sets data-theme via useEffect AFTER mount; combined with hard-coded data-theme='dark' on <html>, you get a flash and (apparently here) a permanent stuck state. Recommend: inline blocking script in <head> that reads localStorage('theme') and sets data-theme before React hydrates.",
+    "Navbar dropdown uses both onMouseEnter/Leave AND document mousedown listener; race conditions are possible. Consider using a small library (Radix/Headless UI) or simplifying to click-only.",
+    "Hero text initial opacity 0 means crawlers and users with prefers-reduced-motion may see no headline; fix with @media (prefers-reduced-motion: reduce) { opacity:1 } or render fully visible by default."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% on localhost:3000 / 0% via public URL (ingress)", "frontend": "~70% — pages/cards/testids OK; theme + dropdown + mobile overflow + contact submit broken"},
+  "test_credentials": "N/A — no auth on this site",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "main_agent_can_self_test": false,
+  "context_for_next_testing_agent": "Public preview URL is https://151db2b3-9cfa-464b-ba95-fff73aaf66fe.preview.emergentagent.com/. /api/* is owned by K8s ingress -> port 8001 (FastAPI), so any Next.js route handler under /api will 404 from outside. Verify this hasn't changed before retesting contact form. Use page.evaluate('() => document.getAnimations().forEach(a => a.finish())') after navigations to defeat the heavy CSS opacity animations. To verify .active behaviour: visit /services?s={1..5} directly — works. To verify dropdown: hover trigger then check dropdown className for the literal 'open' token. To verify theme: read document.documentElement.getAttribute('data-theme') AND localStorage.getItem('theme') after click. To verify mobile overflow: at 390px wide check document.documentElement.scrollWidth > clientWidth and the bounding box of nav-mobile-hamburger.",
+  "rca of the issue": "1) /api/contact 404 — Kubernetes ingress in this environment routes any path beginning with /api to the backend service on port 8001. Next.js route handlers at app/api/contact/route.ts are served by the Next.js process on port 3000 and never receive the request. Reproduce: curl -i https://<preview>/api/contact -> 404 'Not Found' from FastAPI; curl -i http://localhost:3000/api/contact -> 200 {ok:true}. 2) Theme toggle stuck — clicking [data-testid=theme-toggle] yields no change to <html data-theme> nor localStorage('theme'). Most likely the ThemeProvider's first useEffect doesn't commit (or the toggle bound is the no-op default from createContext). Reproduce: open / in fresh tab, click toggle twice, then evaluate document.documentElement.getAttribute('data-theme') and localStorage.getItem('theme') — both unchanged. 3) Services dropdown closed — after hover()/click() on [data-testid=nav-services-trigger] the menu's className remains 'services-dropdown ' (no 'open'). Reproduce: hover trigger, wait 300ms, evaluate className. 4) Mobile overflow — set viewport 390x844, navigate /, evaluate hamburger boundingBox -> x≈415 > 390."
+}
