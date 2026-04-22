@@ -1,26 +1,11 @@
 {
-  "name": "evora-capital",
-  "version": "0.1.0",
+  "name": "evora-capital-supervisor-stub",
+  "version": "0.0.0",
   "private": true,
+  "description": "Supervisor-compatibility stub. The real Evora Capital Next.js project lives one directory up at /app. This stub exists only because the platform supervisor is hardcoded to run `yarn start` in /app/frontend; we delegate to the actual project.",
   "scripts": {
-    "dev": "next dev -p 3000 -H 0.0.0.0",
-    "start": "next start -p 3000 -H 0.0.0.0",
-    "build": "next build",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "next": "16.2.3",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4.0.0",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.3",
-    "tailwindcss": "^4.0.0",
-    "typescript": "^5"
+    "start": "cd .. && yarn start",
+    "dev": "cd .. && yarn dev",
+    "build": "cd .. && yarn build"
   }
 }

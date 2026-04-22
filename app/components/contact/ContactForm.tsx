@@ -55,7 +55,7 @@ export default function ContactForm() {
     }
     setStatus("loading");
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("/send-enquiry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
