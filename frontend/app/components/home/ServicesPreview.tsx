@@ -63,8 +63,8 @@ export default function ServicesPreview() {
               />
             </Link>
           ))}
-          {/* Empty tile for visual balance */}
-          <div className="hidden lg:block bg-primary p-10 relative overflow-hidden">
+          {/* Empty tile for visual balance (fills 6th cell at md/lg so grid is symmetrical) */}
+          <div className="hidden md:block bg-primary p-10 relative overflow-hidden">
             <div className="absolute inset-0 flex items-center justify-center opacity-[0.06]">
               <span className="display-heading" style={{ fontSize: "clamp(4rem, 8vw, 8rem)", color: "var(--gold)" }}>
                 E
