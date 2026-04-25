@@ -68,11 +68,17 @@ export default function Navbar() {
           className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0"
           style={{ textDecoration: "none" }}
         >
-          <svg viewBox="0 0 32 32" fill="none" style={{ width: "24px", height: "24px", flexShrink: 0 }}>
-            <rect x="1" y="1" width="13" height="13" stroke="var(--gold)" strokeWidth="1" />
-            <rect x="18" y="18" width="13" height="13" stroke="var(--gold)" strokeWidth="1" />
-            <rect x="9" y="9" width="14" height="14" stroke="var(--gold)" strokeWidth="0.75" strokeDasharray="2 2" opacity="0.45" />
-          </svg>
+          <img
+            src="/logo.png"
+            alt="Evora Capital"
+            style={{
+              width: "3.5em",
+              height: "3.5em",
+              flexShrink: 0,
+              objectFit: "contain",
+            }}
+          />
+
           <span
             className="font-display wordmark whitespace-nowrap"
             style={{
@@ -93,7 +99,11 @@ export default function Navbar() {
             href="/"
             data-testid="nav-link-home"
             className="font-mono nav-link"
-            style={{ fontSize: "0.7rem", letterSpacing: "0.2em", textTransform: "uppercase" }}
+            style={{
+              fontSize: "0.7rem",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+            }}
           >
             Home
           </Link>
@@ -101,7 +111,11 @@ export default function Navbar() {
             href="/about"
             data-testid="nav-link-about"
             className="font-mono nav-link"
-            style={{ fontSize: "0.7rem", letterSpacing: "0.2em", textTransform: "uppercase" }}
+            style={{
+              fontSize: "0.7rem",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+            }}
           >
             About
           </Link>
@@ -133,17 +147,30 @@ export default function Navbar() {
             >
               Services
               <svg
-                width="10" height="10" viewBox="0 0 12 12" fill="none"
+                width="15"
+                height="15"
+                viewBox="0 0 12 12"
+                fill="none"
                 style={{
                   transition: "transform 0.25s ease",
                   transform: servicesOpen ? "rotate(180deg)" : "rotate(0)",
                 }}
               >
-                <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+                <path
+                  d="M2 4l4 4 4-4"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  fill="none"
+                  strokeLinecap="round"
+                />
               </svg>
             </button>
 
-            <div className={`services-dropdown ${servicesOpen ? "open" : ""}`} role="menu" data-testid="services-dropdown">
+            <div
+              className={`services-dropdown ${servicesOpen ? "open" : ""}`}
+              role="menu"
+              data-testid="services-dropdown"
+            >
               <p
                 className="font-mono px-3.5 pt-2 pb-3"
                 style={{
@@ -182,8 +209,18 @@ export default function Navbar() {
             style={{ fontSize: "0.7rem", padding: "10px 22px" }}
           >
             Contact
-            <svg style={{ width: "12px", height: "12px" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            <svg
+              style={{ width: "12px", height: "12px" }}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M17 8l4 4m0 0l-4 4m4-4H3"
+              />
             </svg>
           </Link>
 
@@ -276,16 +313,22 @@ export default function Navbar() {
                 fontSize: "0.72rem",
                 letterSpacing: "0.2em",
                 textTransform: "uppercase",
-                color: mobileServicesOpen ? "var(--gold)" : "var(--text-secondary)",
+                color: mobileServicesOpen
+                  ? "var(--gold)"
+                  : "var(--text-secondary)",
               }}
             >
               Services
-              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{
-                transition: "transform 0.25s ease",
-                transform: mobileServicesOpen ? "rotate(180deg)" : "rotate(0)",
-              }}>
-                <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-              </svg>
+              <img
+                src="/logo.png"
+                alt="Evora Capital"
+                style={{
+                  width: "24px",
+                  height: "24px",
+                  flexShrink: 0,
+                  objectFit: "contain",
+                }}
+              />
             </button>
             <div
               style={{
@@ -295,7 +338,14 @@ export default function Navbar() {
                 marginTop: mobileServicesOpen ? "12px" : "0",
               }}
             >
-              <div style={{ display: "flex", flexDirection: "column", gap: "14px", paddingLeft: "4px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "14px",
+                  paddingLeft: "4px",
+                }}
+              >
                 {SERVICES.map((s) => (
                   <Link
                     key={s.id}
@@ -345,7 +395,11 @@ export default function Navbar() {
             onClick={() => setMenuOpen(false)}
             data-testid="mobile-contact-cta"
             className="btn-primary"
-            style={{ alignSelf: "flex-start", fontSize: "0.7rem", marginTop: "0.5rem" }}
+            style={{
+              alignSelf: "flex-start",
+              fontSize: "0.7rem",
+              marginTop: "0.5rem",
+            }}
           >
             Contact Us
           </Link>
